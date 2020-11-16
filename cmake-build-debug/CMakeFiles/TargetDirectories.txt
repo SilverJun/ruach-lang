@@ -1,4 +1,0 @@
-C:/Users/jange/Project/ruach-lang/cmake-build-debug/CMakeFiles/ruach_core.dir
-C:/Users/jange/Project/ruach-lang/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-C:/Users/jange/Project/ruach-lang/cmake-build-debug/CMakeFiles/ruach_interpreter.dir
-C:/Users/jange/Project/ruach-lang/cmake-build-debug/CMakeFiles/edit_cache.dir

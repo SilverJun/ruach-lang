@@ -2,13 +2,13 @@
 // Created by SilverJun on 2020-11-15.
 //
 
-#ifndef RUACH_LANG_TOKEN_H
-#define RUACH_LANG_TOKEN_H
+#ifndef RUACH_LANG_TOKEN_HPP
+#define RUACH_LANG_TOKEN_HPP
 
 #include <string>
 #include <vector>
 #include <variant>
-#include <cstdint>
+#include <optional>
 
 namespace ruach::core
 {
@@ -142,13 +142,104 @@ namespace ruach::core
         Casting_Is,
     };
 
-    struct Token {
-        TokenID _id;
-        int _line;
-        std::string _sourceName;
-        std::string _name;
-        std::variant<bool, char, short, int, long, float, double, void*> _value;
+    /**
+     * \brief The token class.
+     * This class represents the data when tokenizing source codes.
+     */
+    class Token final
+    {
+    public:
+        using Value = std::variant<std::monostate, std::string, double, int, char, bool>;
+        using List = std::vector<Token>;
+        using Iter = List::iterator;
+        using Ptr = std::shared_ptr<Token>;
+
+        Token() = delete;
+        Token(Token&) = delete;
+        Token(const Token&) = delete;
+        Token& operator=(const Token&) = delete;
+        ~Token() = default;
+
+        explicit Token(TokenID tokenId, int line, std::string sourceName)
+                : _id(tokenId)
+                , _line(line)
+                , _sourceName(sourceName)
+        {
+        }
+
+        explicit Token(TokenID tokenId, int line, std::string sourceName, Value value)
+            : _id(tokenId)
+            , _line(line)
+            , _sourceName(sourceName)
+            , _value(value)
+        {
+        }
+
+        [[nodiscard]]
+        constexpr bool Is(TokenID tokenId) const
+        {
+            return _id == tokenId;
+        }
+
+        [[nodiscard]]
+        TokenID GetTokenID() const
+        {
+            return _id;
+        }
+
+        [[nodiscard]]
+        int GetLine() const
+        {
+            return _line;
+        }
+
+        [[nodiscard]]
+        std::string GetSourceName() const
+        {
+            return _sourceName;
+        }
+
+        [[nodiscard]]
+        const Value& GetValue()
+        {
+            return _value;
+        }
+
+        template<typename T>
+        bool CheckValueType()
+        {
+            return std::visit([](auto&& args){
+                using ExactT = std::decay_t<decltype(args)>;
+                if constexpr (std::is_same_v<T, ExactT>)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }, _value);
+        }
+
+        template<typename T>
+        [[nodiscard]]
+        std::optional<T> GetValue()
+        {
+            // assert(_value.index() != 0);
+            if (CheckValueType<T>()) {
+                return std::optional<T>(std::get<T>(_value));
+            }
+            else {
+                return std::nullopt;
+            }
+        }
+
+    private:
+        const TokenID _id;
+        const int _line;
+        const std::string _sourceName;
+        const Value _value;
     };
 }
 
-#endif //RUACH_LANG_TOKEN_H
+#endif //RUACH_LANG_TOKEN_HPP

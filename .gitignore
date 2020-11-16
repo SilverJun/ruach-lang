@@ -30,3 +30,6 @@
 *.exe
 *.out
 *.app
+
+Catch2/
+cmake-build-debug
