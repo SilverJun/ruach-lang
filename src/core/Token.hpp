@@ -6,6 +6,7 @@
 #define RUACH_LANG_TOKEN_HPP
 
 #include <string>
+#include <string_view>
 #include <vector>
 #include <variant>
 #include <optional>
@@ -100,6 +101,7 @@ namespace ruach::core
         Literal_Double, //부동소수점
         Literal_Letter,	//문자
         Literal_String,	//문자열
+        Literal_Boolean,		/// true, false
 
         Assignment,
 
@@ -128,8 +130,6 @@ namespace ruach::core
         Logical_Or,
         Logical_Not,
 
-        Boolean_Value,		/// true, false
-
         Optional_Nullable,		/// ?
         Optional_Binding,		/// !
 
@@ -149,10 +149,10 @@ namespace ruach::core
     class Token final
     {
     public:
-        using Value = std::variant<std::monostate, std::string, double, int, char, bool>;
-        using List = std::vector<Token>;
+        using Value = std::variant<std::monostate, std::string, double, float, int, char, bool>;
+        using Ptr = std::unique_ptr<Token>;
+        using List = std::vector<Ptr>;
         using Iter = List::iterator;
-        using Ptr = std::shared_ptr<Token>;
 
         Token() = delete;
         Token(Token&) = delete;
@@ -194,7 +194,7 @@ namespace ruach::core
         }
 
         [[nodiscard]]
-        std::string GetSourceName() const
+        std::string_view GetSourceName() const
         {
             return _sourceName;
         }
@@ -206,18 +206,19 @@ namespace ruach::core
         }
 
         template<typename T>
-        bool CheckValueType()
+        constexpr bool CheckValueType()
         {
             return std::visit([](auto&& args){
                 using ExactT = std::decay_t<decltype(args)>;
-                if constexpr (std::is_same_v<T, ExactT>)
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
+//                if constexpr (std::is_same_v<T, ExactT>)
+//                {
+//                    return true;
+//                }
+//                else
+//                {
+//                    return false;
+//                }
+                return std::is_same_v<T, ExactT>;
             }, _value);
         }
 
@@ -226,10 +227,12 @@ namespace ruach::core
         std::optional<T> GetValue()
         {
             // assert(_value.index() != 0);
-            if (CheckValueType<T>()) {
+            if (CheckValueType<T>())
+            {
                 return std::optional<T>(std::get<T>(_value));
             }
-            else {
+            else
+            {
                 return std::nullopt;
             }
         }
